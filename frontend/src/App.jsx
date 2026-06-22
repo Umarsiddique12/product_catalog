@@ -23,12 +23,20 @@ function App() {
   const [loading, setLoading] = useState(false);
   const location = useLocation();
 
-  const loadProducts = async (cursor = null, selectedCategory = category) => {
+  const loadProducts = async (cursor = null, selectedCategory = category, newProduct = null) => {
     setLoading(true);
 
     try {
       const response = await fetchProducts({ category: selectedCategory, cursor });
-      setProducts((current) => (cursor ? [...current, ...response.products] : response.products));
+      let items = cursor ? [...products, ...response.products] : response.products;
+
+      // If a newly created product was passed via navigation state, ensure it's on top
+      if (newProduct) {
+        const exists = items.some((p) => p._id === newProduct._id);
+        if (!exists) items = [newProduct, ...items];
+      }
+
+      setProducts(items);
       setNextCursor(response.nextCursor);
     } finally {
       setLoading(false);
@@ -38,7 +46,12 @@ function App() {
   useEffect(() => {
     setProducts([]);
     setNextCursor(null);
-    loadProducts(null, category);
+    const newProduct = location.state && location.state.newProduct ? location.state.newProduct : null;
+    loadProducts(null, category, newProduct);
+    // clear navigation state after using it
+    if (location.state && location.state.newProduct) {
+      window.history.replaceState({}, document.title, location.pathname + location.search);
+    }
   }, [category, location.pathname, location.search]);
 
   const handleNextPage = () => {
@@ -47,24 +60,20 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/40">
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        <header className="mb-8 rounded-2xl border border-slate-200/80 bg-white/80 p-6 shadow-sm backdrop-blur-sm">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="app-background">
+      <div className="container">
+        <header className="site-header">
+          <div className="site-header-inner">
             <div>
-              <p className="text-sm font-medium text-indigo-600">Inventory Manager</p>
-              <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-                Product Catalog
-              </h1>
-              <p className="mt-1 text-sm text-slate-500">
-                Browse, filter, and add products to your catalog.
-              </p>
+              <p className="eyebrow">Inventory Manager</p>
+              <h1 className="site-title">Product Catalog</h1>
+              <p className="lead">Browse, filter, and add products to your catalog.</p>
             </div>
-            <nav className="flex gap-2 rounded-xl bg-slate-100 p-1">
-              <NavLink to="/" end className={navLinkClass}>
+            <nav className="site-nav">
+              <NavLink to="/" end className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
                 Product List
               </NavLink>
-              <NavLink to="/add-product" className={navLinkClass}>
+              <NavLink to="/add-product" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
                 Add Product
               </NavLink>
             </nav>

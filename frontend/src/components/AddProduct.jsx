@@ -40,7 +40,7 @@ function AddProduct() {
     setSubmitting(true);
 
     try {
-      await createProduct({
+      const created = await createProduct({
         name: name.trim(),
         category,
         price: Number(price)
@@ -50,8 +50,8 @@ function AddProduct() {
       resetForm();
 
       setTimeout(() => {
-        navigate('/?refresh=' + Date.now(), { replace: true });
-      }, 800);
+        navigate('/?refresh=' + Date.now(), { replace: true, state: { newProduct: created } });
+      }, 600);
     } catch (submitError) {
       setError(submitError.response?.data?.message || submitError.message || 'Failed to create product.');
     } finally {
@@ -96,7 +96,7 @@ function AddProduct() {
           </label>
 
           <label className="block">
-            <span className="text-sm font-medium text-slate-700">Price ($)</span>
+            <span className="text-sm font-medium text-slate-700">Price (₹)</span>
             <input
               type="number"
               step="0.01"
