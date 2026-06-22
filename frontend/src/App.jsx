@@ -28,7 +28,13 @@ function App() {
 
     try {
       const response = await fetchProducts({ category: selectedCategory, cursor });
-      let items = cursor ? [...products, ...response.products] : response.products;
+      
+      // Validate response structure
+      const responseProducts = Array.isArray(response.products) ? response.products : [];
+      
+      let items = cursor && Array.isArray(products) 
+        ? [...products, ...responseProducts] 
+        : responseProducts;
 
       // If a newly created product was passed via navigation state, ensure it's on top
       if (newProduct) {
@@ -37,7 +43,13 @@ function App() {
       }
 
       setProducts(items);
-      setNextCursor(response.nextCursor);
+      setNextCursor(response.nextCursor || null);
+    } catch (error) {
+      console.error('Error loading products:', error.message);
+      // Show user-friendly error but keep existing data
+      alert('Error loading products: ' + error.message);
+      setProducts([]);
+      setNextCursor(null);
     } finally {
       setLoading(false);
     }

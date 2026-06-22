@@ -40,7 +40,10 @@ function formatDate(iso) {
 function ProductTable({ products, loading = false }) {
   if (loading) return <LoadingSkeleton />;
 
-  if (!products || products.length === 0) {
+  // Ensure products is an array
+  const productList = Array.isArray(products) ? products : [];
+
+  if (productList.length === 0) {
     return (
       <div className="empty-card">
         <p className="empty-title">No products found</p>
@@ -61,7 +64,7 @@ function ProductTable({ products, loading = false }) {
           </tr>
         </thead>
         <tbody>
-          {products.map((product) => (
+          {productList.map((product) => (
             <tr key={product._id}>
               <td>
                 <div className="name-cell">
